@@ -245,7 +245,7 @@ class World(object):
 
     def toggle_radar(self):
         if self.radar_sensor is None:
-            self.radar_sensor = RadarSensor(self.player, self.hud) #debug hud
+            self.radar_sensor = RadarSensor(self.player, self.hud) #debug adding hud for display message to user "too Close"
 
         elif self.radar_sensor.sensor is not None:
             self.radar_sensor.sensor.destroy()
@@ -430,7 +430,7 @@ class KeyboardControl(object):
 
         if not self._autopilot_enabled:
             if isinstance(self._control, carla.VehicleControl):
-                self._parse_vehicle_keys(pygame.key.get_pressed(), clock.get_time(), world) #debug
+                self._parse_vehicle_keys(pygame.key.get_pressed(), clock.get_time(), world) #debug adding world to arg list so function can access world var
                 self._control.reverse = self._control.gear < 0
                 # Set automatic control-related vehicle lights
                 if self._control.brake:
@@ -454,7 +454,7 @@ class KeyboardControl(object):
         self._control.brake = 0.8
 
     def _parse_vehicle_keys(self, keys, milliseconds, world):
-        global crash_distance
+        global crash_distance #Global var for too close, will crash
         if crash_distance == 0:
             if keys[K_UP] or keys[K_w]:
                 self._control.throttle = min(self._control.throttle + 0.01, .5)
@@ -467,7 +467,7 @@ class KeyboardControl(object):
             else:
                 self._control.brake = 0
 
-        # DEBUG:
+        # DEBUG: Start potential crash logic
 
         if crash_distance == 1:
             if not self._control.reverse:
@@ -488,7 +488,7 @@ class KeyboardControl(object):
 
 
 
-        # DEBUG:
+        # DEBUG: end potential crash logic
 
         steer_increment = 5e-4 * milliseconds
         if keys[K_LEFT] or keys[K_a]:
@@ -867,7 +867,7 @@ class IMUSensor(object):
 
 
 class RadarSensor(object):
-    def __init__(self, parent_actor, hud): #added hud debug
+    def __init__(self, parent_actor, hud): #added hud debug to add message to user too close!
         self.sensor = None
         self._parent = parent_actor
         self.velocity_range = 7.5 # m/s
@@ -905,10 +905,10 @@ class RadarSensor(object):
             # be properly seen
             fw_vec = carla.Vector3D(x=detect.depth - 0.25)
             global crash_distance
-            if detect.depth < 10: #debug
+            if detect.depth < 10: #debug trigger for too close logic starting collision mitigation procedure
 
                 crash_distance = 1
-                self.hud.notification('Too Close'  + str(detect.depth)) #debug
+                self.hud.notification('Too Close'  + str(detect.depth)) #debug added specific message text and info regarding depth to crash object
 
             carla.Transform(
                 carla.Location(),
